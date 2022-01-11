@@ -8,27 +8,31 @@ use Util\Bes;
 $message = "";
 if(isset($_POST)) {
 
-    $file = $_FILES['zip']['tmp_name'];
-    $dir  = 'temp';
+    $message = "";
 
-    $files = glob($dir.'/*');
+
+    $file = $_FILES['zip']['tmp_name'];
+    $dir = 'temp';
+
+    $files = glob($dir . '/*');
 
     #deleting old file
-    foreach ($files as $old_file){
+    foreach ($files as $old_file) {
         unlink($old_file); # deleting
     }
 
     try {
-        $zip  = new ZipArchive;
+        $zip = new ZipArchive;
         $zip->open($file);
         $zip->extractTo($dir);
         $zip->close();
 
-        $result  = [];
-        $files = glob($dir.'/*');
+        $result = [];
+        $files = glob($dir . '/*');
 
-        if(count($files) == 0){
-            dd('no file');
+        if (count($files) == 0) {
+            echo "<script>alert('Invalid zip content!')</script>";
+            header('index.php');
         }
 
         #TODO: decide algo type
@@ -36,8 +40,7 @@ if(isset($_POST)) {
 
         $type = getFileType($array);
 
-        if(!$type){
-            dd('Invalid Algo Type.');
+        if (!$type) {
             echo "<script>alert('Invalid Algo Type.')</script>";
             header('index.php');
         }
@@ -50,32 +53,37 @@ if(isset($_POST)) {
             'average' => 0,
         ];
 
-        foreach ($files as $new_file){
+        foreach ($files as $new_file) {
 
             $array = file($new_file);
-            if($type == "GABES"){
+            if ($type == "GABES") {
                 $detail = Gabes::getDetail($array);
-            }elseif($type == "GA"){
+            } elseif ($type == "GA") {
                 $detail = Ga::getDetail($array);
-            }elseif($type == "BES"){
+            } elseif ($type == "BES") {
                 $detail = Bes::getDetail($array);
             }
 
-            $outcome['name']            = $detail['name'];
+            $outcome['name'] = $detail['name'];
             $outcome['generation_size'] = $detail['generation'];
-            $outcome['simulation_count'] =+1;
-            $outcome['cumulative_time']  =+$detail['best_duration'];
+            $outcome['simulation_count'] = $outcome['simulation_count'] + 1;
+            $outcome['cumulative_time'] = $outcome['cumulative_time'] + $detail['best_duration'];
             $result[] = [
-                'file_name'       => $new_file,
-                'duration'        => $detail['best_duration'],
+                'file_name' => $new_file,
+                'duration' => $detail['best_duration'],
             ];
         }
 
         $outcome['average'] = $outcome['cumulative_time'] / $outcome['simulation_count'];
 
-    }Catch(Exception $exception){
-        $message =  "<div id=\"failure\">".$exception->getMessage()."</div>";
+        $message = "<div class='alert alert-success'>Report generated successfully!</div>";
+
+    } catch (Exception $exception) {
+        $message = "<div class='alert alert-danger'>" . $exception->getMessage() . "</div>";
     }
+}else{
+    echo "<script>alert('Invalid action.')</script>";
+    header('index.php');
 }
 ?>
 
@@ -111,6 +119,8 @@ if(isset($_POST)) {
 </header>
 <section id="hero" class="d-flex align-items-center">
     <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+
+        <?= (isset($message))? $message :"" ?>
         <div class="m-2">
             <div class="mt-3">
                 <h5>Algorithm Name   : <?= $outcome['name'] ?></h5>
