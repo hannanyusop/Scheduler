@@ -9,8 +9,10 @@ if(!function_exists('dd')){
     }
 }
 
+function reformatTime($time){
 
-
+    return $time." seconds";
+}
 
 function getFileType($array){
 
