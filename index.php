@@ -6,8 +6,8 @@
 	<title>Job Scheduler</title>
 </head>
 <body>
-	<form action="job-calculate.php" method="POST" enctype="multipart/form-data">
-		<input type="file" name="file">
+	<form action="unziper.php" method="POST" enctype="multipart/form-data">
+		<input type="file" name="zip" accept=".zip" required>
 		<input type="submit" name="">
 	</form>
 
